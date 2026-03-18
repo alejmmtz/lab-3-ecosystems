@@ -56,8 +56,7 @@ export const createOrderService = async (
   const dbRequest = await pool.query(
     `INSERT INTO orders (status, subtotal, tip, total, address, indications, consumer_id, store_id) 
      VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
-     RETURNING id, status, subtotal, tip, total, address, indications, 
-               consumer_id as "consumerId", store_id as "storeId", created_at as "createdAt"`,
+     RETURNING *`,
     [
       'pending',
       order.subtotal,
@@ -97,9 +96,7 @@ export const updateOrderService = async (
   const dbRequest = await pool.query(
     `UPDATE orders SET status = $1, delivery_id = $2, updated_at = NOW() 
      WHERE id = $3 
-     RETURNING id, status, subtotal, tip, total, address, indications, 
-               consumer_id as "consumerId", store_id as "storeId", 
-               delivery_id as "deliveryId", created_at as "createdAt"`,
+     RETURNING *`,
     [status, deliveryId, orderId]
   );
 

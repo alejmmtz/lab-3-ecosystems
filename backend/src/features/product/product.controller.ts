@@ -8,6 +8,7 @@ import {
   updateProductService,
 } from './product.service';
 import { getUserFromRequest } from '../../middlewares/authMiddleware';
+import { getStoreByOwnerIdService } from '../store/store.service';
 
 export const getProductsController = async (req: Request, res: Response) => {
   const { storeId } = req.query;
@@ -24,6 +25,8 @@ export const getProductByIdController = async (req: Request, res: Response) => {
 export const createProductController = async (req: Request, res: Response) => {
   const user = getUserFromRequest(req);
 
+  const store = await getStoreByOwnerIdService(user.id);
+
   if (!req.body) {
     throw Boom.badRequest('Request body is required');
   }
@@ -38,7 +41,7 @@ export const createProductController = async (req: Request, res: Response) => {
     name,
     price,
     description,
-    storeId: user.id,
+    storeId: store.id.toString(),
   });
 
   return res.status(201).json(newProduct);
@@ -63,7 +66,9 @@ export const updateProductController = async (req: Request, res: Response) => {
 export const deleteProductController = async (req: Request, res: Response) => {
   const user = getUserFromRequest(req);
   const { id } = req.params;
-  await deleteProductService(Number(id), user.id);
+
+  const store = await getStoreByOwnerIdService(user.id);
+  await deleteProductService(Number(id), store.id.toString());
 
   return res.send('Product deleted');
 };

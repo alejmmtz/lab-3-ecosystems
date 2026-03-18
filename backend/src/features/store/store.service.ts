@@ -29,7 +29,7 @@ export const createStoreService = async (
   const dbRequest = await pool.query(
     `INSERT INTO stores (name, status, owner_id) 
      VALUES ($1, $2, $3) 
-     RETURNING id, name, info, address, status, owner_id as "ownerId"`,
+     RETURNING *`,
     [store.name, 'open', ownerId]
   );
 
@@ -55,7 +55,7 @@ export const updateStoreService = async (
     `UPDATE stores 
      SET info = $1, address = $2, status = $3 
      WHERE id = $4 
-     RETURNING id, name, info, address, status, owner_id as "ownerId"`,
+     RETURNING *`,
     [info, address, status, storeId]
   );
 
@@ -73,4 +73,19 @@ export const deleteStoreService = async (
   }
 
   await pool.query('DELETE FROM stores WHERE id = $1', [storeId]);
+};
+
+export const getStoreByOwnerIdService = async (
+  ownerId: string
+): Promise<Store> => {
+  const dbRequest = await pool.query(
+    'SELECT id, name, info, address, status, owner_id as "ownerId" FROM stores WHERE owner_id = $1',
+    [ownerId]
+  );
+
+  if (dbRequest.rowCount === 0) {
+    throw Boom.notFound('Este usuario no tiene una tienda asociada');
+  }
+
+  return dbRequest.rows[0];
 };

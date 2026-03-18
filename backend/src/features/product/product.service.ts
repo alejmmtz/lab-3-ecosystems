@@ -39,7 +39,7 @@ export const createProductService = async (
   const dbRequest = await pool.query(
     `INSERT INTO products (name, price, description, store_id) 
      VALUES ($1, $2, $3, $4) 
-     RETURNING id, name, price, description, store_id as "storeId"`,
+     RETURNING *`,
     [product.name, product.price, product.description, product.storeId]
   );
 
@@ -63,7 +63,7 @@ export const updateProductService = async (
     `UPDATE products 
      SET price = $1, description = $2 
      WHERE id = $3 
-     RETURNING id, name, price, description, store_id as "storeId"`,
+     RETURNING *`,
     [price, description, productId]
   );
 

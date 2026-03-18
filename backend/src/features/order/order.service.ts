@@ -8,18 +8,22 @@ export const getOrdersService = async (
 ): Promise<Order[]> => {
   let query =
     'SELECT id, status, subtotal, tip, total, address, indications, consumer_id as "consumerId", store_id as "storeId", delivery_id as "deliveryId", created_at as "createdAt" FROM orders';
-  const params: string[] = [];
+  const params: any[] = [];
 
   if (role === 'consumer') {
     query += ' WHERE consumer_id = $1';
     params.push(userId);
   } else if (role === 'store') {
-    query += ' WHERE store_id = $1';
+    query +=
+      ' WHERE store_id = (SELECT id FROM stores WHERE owner_id = $1 LIMIT 1)';
     params.push(userId);
   } else if (role === 'delivery') {
     query += " WHERE delivery_id = $1 OR status = 'accepted'";
     params.push(userId);
+  } else {
+    return [];
   }
+  query += ' ORDER BY created_at DESC';
 
   const dbRequest = await pool.query(query, params);
   return dbRequest.rows;

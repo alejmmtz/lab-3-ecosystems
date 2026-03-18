@@ -42,7 +42,7 @@ export const createUserService = async (
     const { error: storeError } = await supabase.from('stores').insert([
       {
         name: user.storeName,
-        owner_Id: newUserId,
+        owner_id: newUserId,
         status: 'closed',
       },
     ]);

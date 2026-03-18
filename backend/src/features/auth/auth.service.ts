@@ -21,6 +21,7 @@ export const authenticateUserService = async (
 export const createUserService = async (
   user: CreateUserDTO
 ): Promise<AuthResponse['data']> => {
+  // 1. Crear usuario en la autenticación de Supabase
   const signUpResponse = await supabase.auth.signUp({
     email: user.email,
     password: user.password,
@@ -38,20 +39,36 @@ export const createUserService = async (
 
   const newUserId = signUpResponse.data.user?.id;
 
-  if (user.role === UserRole.STORE && user.storeName && newUserId) {
-    const { error: storeError } = await supabase.from('stores').insert([
+  if (newUserId) {
+    const { error: userTableError } = await supabase.from('users').insert([
       {
-        name: user.storeName,
-        owner_id: newUserId,
-        status: 'closed',
+        id: newUserId,
+        email: user.email,
+        name: user.name,
+        role: user.role,
       },
     ]);
 
-    if (storeError) {
+    if (userTableError) {
       throw Boom.internal(
-        'User was created, but failed to create the store: ' +
-          storeError.message
+        'Error creating user profile: ' + userTableError.message
       );
+    }
+
+    if (user.role === UserRole.STORE && user.storeName) {
+      const { error: storeError } = await supabase.from('stores').insert([
+        {
+          name: user.storeName,
+          owner_id: newUserId,
+          status: 'closed',
+        },
+      ]);
+
+      if (storeError) {
+        throw Boom.internal(
+          'User created, but failed to create store: ' + storeError.message
+        );
+      }
     }
   }
 
